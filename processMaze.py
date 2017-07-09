@@ -69,9 +69,8 @@ class Maze(object):
     def find_nodes(self):
         """Finds and returns nodes in a maze"""
 
-        self.node_maze = self.maze.copy()
-        print type(self.node_maze)
-        self.node_maze.save('Nodes_' + self.maze.filename)
+        maze_copy = self.maze.copy()
+
         node_dict = {}
 
         # Get start and end nodes
@@ -80,12 +79,12 @@ class Maze(object):
             if self.maze.getpixel((x, 0)) == self.WHITE:
 
                 start = self.Node(x, 0, surroundings=self.get_surroundings(x, 0))
-                self.node_maze.putpixel((x, 0), self.RED)
+                maze_copy.putpixel((x, 0), self.RED)
 
             if self.maze.getpixel((x, self.height-1)) == self.WHITE:
 
                 end = self.Node(x, self.height-1, surroundings=self.get_surroundings(x, 0))
-                self.node_maze.putpixel((x, self.height-1), self.RED)
+                maze_copy.putpixel((x, self.height-1), self.RED)
 
         # Get the rest of the nodes
         for y in xrange(self.height-1):
@@ -113,16 +112,16 @@ class Maze(object):
                     if isNode:
                         node_dict['node_%s_%s' % (x,y)] = self.Node(x, y, surroundings=self.get_surroundings(x,y))
 
-                        self.node_maze.putpixel((x, y), self.RED)
+                        maze_copy.putpixel((x, y), self.RED)
 
         filename =  self.maze.filename.replace('cropped_', 'Nodes_')
-        self.node_maze.save(filename)
+        maze_copy.save(filename)
 
         return node_dict
 
     def make_graph(self, node_dict):
         """Connects the Nodes"""
-
+        print type(self.node_maze)
         for key in node_dict:
 
             node = node_dict[key]
