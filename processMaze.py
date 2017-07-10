@@ -19,31 +19,32 @@ class Maze(object):
 
         # TODO: Write a way to access Maze.get_surroundings so we can have surroundings just from
         # the coords
-        def __init__(self, x_pos, y_pos, adjacent_nodes={}, surroundings=None):
+        def __init__(self, x_pos, y_pos, adjacent_nodes={}, surroundings=None, start=False, end=False):
 
             self.name = 'Node (%s, %s)' % (x_pos, y_pos)
             self.x_pos, self.y_pos = (x_pos, y_pos)
             self.adjacent_nodes = adjacent_nodes
             self.surroundings = surroundings
+            self.start = start
+            self.end = end
 
         def __str__(self):
             return self.name
 
     def __init__(self, filename, to_crop=False):
 
-        self.filename = filename
         self.image = Image.open(filename)
         self.maze = Image.open(cropBorder(self.image)) if to_crop else self.image
         self.height, self.width = self.maze.size
-        self.nodes = self.find_nodes()
-        self.node_maze = None
-        self.graph = self.make_graph(self.nodes)
+        self.node_dict = self.find_nodes()[0]
+        self.node_maze = Image.open(self.find_nodes()[1])
+        self.graph = self.make_graph(self.node_dict)
 
     def get_surroundings(self, x_pos, y_pos):
         """Gets the values of up,down,left,right at given coords."""
 
         up = (x_pos, y_pos - 1) if y_pos - 1 >= 0 else False
-        down = (x_pos, y_pos + 1) if y_pos + 1 <= self.height else False
+        down = (x_pos, y_pos + 1) if y_pos + 1 < self.height else False
         left = (x_pos - 1, y_pos) if x_pos - 1 > 0 else False
         right = (x_pos + 1, y_pos) if x_pos + 1 < self.width else False
 
@@ -59,7 +60,7 @@ class Maze(object):
             if surroundings[direction]:
                 pix = self.maze.getpixel(surroundings[direction])
 
-                if pix == self.WHITE:
+                if pix != self.BLACK:
                     surroundings[direction] = True
                 else:
                     surroundings[direction] = False
@@ -78,12 +79,18 @@ class Maze(object):
 
             if self.maze.getpixel((x, 0)) == self.WHITE:
 
-                start = self.Node(x, 0, surroundings=self.get_surroundings(x, 0))
+                node_name = 'node_%s_%s' % (x, 0)
+
+                node_dict[node_name] = self.Node(x, 0, surroundings=self.get_surroundings(x,0), start=True)
+
                 maze_copy.putpixel((x, 0), self.RED)
 
             if self.maze.getpixel((x, self.height-1)) == self.WHITE:
 
-                end = self.Node(x, self.height-1, surroundings=self.get_surroundings(x, 0))
+                node_name = 'node_%s_%s' % (x, self.height-1)
+
+                node_dict['node_%s_%s' % (x, self.height-1)] = self.Node(x, self.height-1, surroundings=self.get_surroundings(x, self.height-1), end=True)
+
                 maze_copy.putpixel((x, self.height-1), self.RED)
 
         # Get the rest of the nodes
@@ -114,14 +121,16 @@ class Maze(object):
 
                         maze_copy.putpixel((x, y), self.RED)
 
-        filename =  self.maze.filename.replace('cropped_', 'Nodes_')
+        filename =  self.maze.filename.replace('cropped_', 'nodes_')
         maze_copy.save(filename)
 
-        return node_dict
+        return node_dict, filename
 
     def make_graph(self, node_dict):
         """Connects the Nodes"""
-        print type(self.node_maze)
+
+        mazeCopy = self.maze.copy()
+
         for key in node_dict:
 
             node = node_dict[key]
@@ -129,51 +138,41 @@ class Maze(object):
             surroundings = node.surroundings
             x_pos, y_pos = node.x_pos, node.y_pos
 
-            # TODO: condense the next 4 if-else statements
-            if surroundings['up']:
+            print '\nORG NODE: ', x_pos, y_pos
+            mazeCopy.putpixel((x_pos, y_pos), self.RED)
 
-                while self.node_maze.getpixel((x_pos, y_pos)) == self.WHITE:
-                    y_pos -= 1
+            def move_to_node(direction, x_pos, y_pos):
 
-                found_node = self.get_node_by_pos(x_pos, y_pos)
-                node.adjacent_nodes['up'] = found_node
+                direction_additions = {
+                    'up': (0,-1),
+                    'down': (0,1),
+                    'right': (1,0),
+                    'left': (-1,0)
+                }
 
-            else:
-                node.adjacent_nodes['up'] = None
+                if surroundings[direction]:
+                    # Move the x and y position off of the original node
+                    x_pos += direction_additions[direction][0]
+                    y_pos += direction_additions[direction][1]
 
-            if surroundings['down']:
+                    while self.node_maze.getpixel((x_pos, y_pos)) == self.WHITE:
+                        x_pos += direction_additions[direction][0]
+                        y_pos += direction_additions[direction][1]
 
-                while self.node_maze.getpixel((x_pos, y_pos)) == self.WHITE:
-                    y_pos += 1
+                    print 'NODE: ', x_pos, y_pos
+                    # mazeCopy.putpixel((x_pos, y_pos), self.GREEN)
 
-                found_node = self.get_node_by_pos(x_pos, y_pos)
-                node.adjacent_nodes['down'] = found_node
+                    found_node = self.get_node_by_pos(x_pos, y_pos)
+                    node.adjacent_nodes[direction] = found_node
 
-            else:
-                node.adjacent_nodes['down'] = None
+                else:
+                    node.adjacent_nodes[direction] = None
 
-            if surroundings['right']:
-
-                while self.node_maze.getpixel((x_pos, y_pos)) == self.WHITE:
-                    x_pos += 1
-
-                found_node = self.get_node_by_pos(x_pos, y_pos)
-                node.adjacent_nodes['right'] = found_node
-
-            else:
-                node.adjacent_nodes['right'] = None
-
-            if surroundings['left']:
-
-                while self.node_maze.getpixel((x_pos, y_pos)) == self.WHITE:
-                    x_pos -= 1
-
-                found_node = self.get_node_by_pos(x_pos, y_pos)
-                node.adjacent_nodes['left'] = found_node
-
-            else:
-                node.adjacent_nodes['left'] = None
-
+            move_to_node('up', x_pos, y_pos)
+            move_to_node('down', x_pos, y_pos)
+            move_to_node('left', x_pos, y_pos)
+            move_to_node('right', x_pos, y_pos)
+            mazeCopy.save('TEST.png')
 
     def get_pixel(self, x_pos, y_pos, maze=None):
         """Return pixel RGB Value"""
@@ -187,12 +186,36 @@ class Maze(object):
 
         node_name = 'node_%s_%s' % (x_pos, y_pos)
 
-        return self.nodes[node_name]
+        return self.node_dict[node_name]
 
-    def print_nodes(self,nodes):
+    def print_nodes(self):
         """Prints node names"""
-        for node in nodes:
-            print node
+        for node in self.node_dict:
+            print self.node_dict[node]
+
+    def mark_position(self, maze, x_pos, y_pos, filename=None, color=(0,255,255)):
+
+        if filename is None:
+            filename = maze.filename
+
+        maze = maze.copy()
+        maze.putpixel((x_pos, y_pos), color)
+        maze.save(filename)
+
+        return filename
+
+    def test_node_locations(self):
+        """Confirm that the identified nodes are in the correct location"""
+        for key in self.node_dict:
+            node = self.node_dict[key]
+
+            for key in node.adjacent_nodes:
+
+                adj_node = node.adjacent_nodes[key]
+                pix = maze.get_pixel(node.x_pos, node.y_pos)
+                print pix
+                # if pix != self.RED:
+                #     print 'ADJACENT NODE AT ', node.x_pos, node.y_pos, 'DOESNT EXIST'
 
 
 if __name__ == '__main__':
@@ -202,5 +225,9 @@ if __name__ == '__main__':
     os.chdir(cwd + '/mazes')
 
     maze = Maze('smallmaze.png', to_crop=True)
+
+    print 'Surroundings: ', maze.get_node_by_pos(3,1).surroundings
+    print 'Adjacent Nodes: ', maze.get_node_by_pos(3,1).adjacent_nodes
+    maze.test_node_locations()
 
     print 'Success'
