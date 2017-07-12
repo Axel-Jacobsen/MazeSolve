@@ -7,20 +7,6 @@ from cropBorder import cropBorder
 
 """MAZES FROM http://hereandabove.com/maze/mazeorig.form.html"""
 
-class Node(object):
-
-    def __init__(self, x_pos, y_pos, adjacent_nodes={}, surroundings=None, start=False, end=False):
-
-        self.name = 'node_%s_%s' % (x_pos, y_pos)
-        self.x_pos, self.y_pos = (x_pos, y_pos)
-        self.adjacent_nodes = adjacent_nodes
-        self.surroundings = surroundings
-        self.start = start
-        self.end = end
-
-    def __str__(self):
-        return self.name
-
 class Maze(object):
 
     BLACK = (0, 0, 0)
@@ -28,6 +14,20 @@ class Maze(object):
     RED = (255, 0, 0)
     GREEN = (0, 255, 0)
     BLUE = (0, 0, 255)
+
+    class Node(object):
+
+        def __init__(self, x_pos, y_pos, adjacent_nodes={}, surroundings=None, start=False, end=False):
+
+            self.name = 'node_%s_%s' % (x_pos, y_pos)
+            self.x_pos, self.y_pos = (x_pos, y_pos)
+            self.adjacent_nodes = adjacent_nodes
+            self.surroundings = surroundings
+            self.start = start
+            self.end = end
+
+        def __str__(self):
+            return self.name
 
     def __init__(self, filename, to_crop=False):
 
@@ -79,7 +79,7 @@ class Maze(object):
 
                 node_name = 'node_%s_%s' % (x, 0)
 
-                node_dict[node_name] = Node(x, 0, surroundings=self.get_surroundings(x,0), start=True)
+                node_dict[node_name] = self.Node(x, 0, surroundings=self.get_surroundings(x,0), start=True)
 
                 maze_copy.putpixel((x, 0), self.RED)
 
@@ -87,7 +87,7 @@ class Maze(object):
 
                 node_name = 'node_%s_%s' % (x, self.height-1)
 
-                node_dict['node_%s_%s' % (x, self.height-1)] = Node(x, self.height-1, surroundings=self.get_surroundings(x, self.height-1), end=True)
+                node_dict['node_%s_%s' % (x, self.height-1)] = self.Node(x, self.height-1, surroundings=self.get_surroundings(x, self.height-1), end=True)
 
                 maze_copy.putpixel((x, self.height-1), self.RED)
 
@@ -115,7 +115,7 @@ class Maze(object):
 
                     # Color maze, assign nodes
                     if isNode:
-                        node_dict['node_%s_%s' % (x,y)] = Node(x, y, surroundings=self.get_surroundings(x,y))
+                        node_dict['node_%s_%s' % (x,y)] = self.Node(x, y, surroundings=self.get_surroundings(x,y))
 
                         maze_copy.putpixel((x, y), self.RED)
 
@@ -135,15 +135,25 @@ class Maze(object):
                a) if it is a node, add it to the adjacent node dictionary of the orignial
                   node.
                b) if it is not a node, ignore it and continue
-
         """
 
-        node_list = self.node_dict.keys()
+        direction_sums = {
+            'up': (0, -1),
+            'down': (0, 1),
+            'left': (-1, 0),
+            'right': (1, 0)
+        }
+
+        node_list = self.node_list()
 
         for key in self.node_dict:
 
             node = self.node_dict[key]
             surroundings = node.surroundings
+            x_pos = node.x_pos
+            y_pos = node.y_pos
+
+            # print '\n\n', node.adjacent_nodes
 
             for direction in surroundings:
 
@@ -151,7 +161,27 @@ class Maze(object):
 
                 if path:
 
+                    node.adjacent_nodes[direction] = self.check_nodes_in_dir(x_pos, y_pos, direction_sums[direction])
 
+                else:
+
+                    node.adjacent_nodes[direction] = None
+
+            # print node.adjacent_nodes
+
+    def check_nodes_in_dir(self, x_pos, y_pos, direc_sum):
+        """
+           Checks for nodes in the direction directed by direc_sum using recursion.
+           Very specified just for the `make_graph()` method. TODO: Make it generalized
+        """
+
+        x_pos += direc_sum[0]
+        y_pos += direc_sum[1]
+
+        try:
+            return self.get_node_by_pos(x_pos, y_pos)
+        except:
+            return self.check_nodes_in_dir(x_pos, y_pos, direc_sum)
 
     def get_pixel(self, x_pos, y_pos, maze=None):
         """Return pixel RGB Value"""
