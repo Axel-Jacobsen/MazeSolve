@@ -3,3 +3,7 @@
 .git
 
 .DS_Store
+
+*.png
+
+*.gif
