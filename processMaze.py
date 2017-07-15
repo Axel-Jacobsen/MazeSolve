@@ -7,6 +7,29 @@ from cropBorder import cropBorder
 
 """MAZES FROM http://hereandabove.com/maze/mazeorig.form.html"""
 
+class Node(object):
+
+    def __init__(self, x_pos, y_pos, surroundings=None, start=False, end=False):
+
+        self.name = 'node_%s_%s' % (x_pos, y_pos)
+        self.x_pos, self.y_pos = (x_pos, y_pos)
+        self.surroundings = surroundings
+        self.start = start
+        self.end = end
+        self._adjacent_nodes = {}
+
+    def __str__(self):
+        return self.name
+
+    @property
+    def adjacent_nodes(self):
+        """Adjacent Node Property"""
+        return self._adjacent_nodes
+
+    def set_adjacent_nodes(self, key, value):
+        """Sets adjacent node"""
+        self._adjacent_nodes[key] = value
+
 class Maze(object):
 
     BLACK = (0, 0, 0)
@@ -14,20 +37,6 @@ class Maze(object):
     RED = (255, 0, 0)
     GREEN = (0, 255, 0)
     BLUE = (0, 0, 255)
-
-    class Node(object):
-
-        def __init__(self, x_pos, y_pos, adjacent_nodes={}, surroundings=None, start=False, end=False):
-
-            self.name = 'node_%s_%s' % (x_pos, y_pos)
-            self.x_pos, self.y_pos = (x_pos, y_pos)
-            self.adjacent_nodes = adjacent_nodes
-            self.surroundings = surroundings
-            self.start = start
-            self.end = end
-
-        def __str__(self):
-            return self.name
 
     def __init__(self, filename, to_crop=False):
 
@@ -41,6 +50,7 @@ class Maze(object):
     def get_surroundings(self, x_pos, y_pos):
         """Gets the values of up,down,left,right at given coords."""
 
+        # The x,y coordinates of a given pixel's surorundings at x_pos and y_pos
         up = (x_pos, y_pos - 1) if y_pos - 1 >= 0 else False
         down = (x_pos, y_pos + 1) if y_pos + 1 < self.height else False
         left = (x_pos - 1, y_pos) if x_pos - 1 >= 0 else False
@@ -79,7 +89,7 @@ class Maze(object):
 
                 node_name = 'node_%s_%s' % (x, 0)
 
-                node_dict[node_name] = self.Node(x, 0, surroundings=self.get_surroundings(x,0), start=True)
+                node_dict[node_name] = Node(x, 0, surroundings=self.get_surroundings(x,0), start=True)
 
                 maze_copy.putpixel((x, 0), self.RED)
 
@@ -87,7 +97,7 @@ class Maze(object):
 
                 node_name = 'node_%s_%s' % (x, self.height-1)
 
-                node_dict['node_%s_%s' % (x, self.height-1)] = self.Node(x, self.height-1, surroundings=self.get_surroundings(x, self.height-1), end=True)
+                node_dict['node_%s_%s' % (x, self.height-1)] = Node(x, self.height-1, surroundings=self.get_surroundings(x, self.height-1), end=True)
 
                 maze_copy.putpixel((x, self.height-1), self.RED)
 
@@ -115,7 +125,7 @@ class Maze(object):
 
                     # Color maze, assign nodes
                     if isNode:
-                        node_dict['node_%s_%s' % (x,y)] = self.Node(x, y, surroundings=self.get_surroundings(x,y))
+                        node_dict['node_%s_%s' % (x,y)] = Node(x, y, surroundings=self.get_surroundings(x,y))
 
                         maze_copy.putpixel((x, y), self.RED)
 
@@ -125,17 +135,7 @@ class Maze(object):
         return node_dict, filename
 
     def make_graph(self):
-        """Connects the Nodes
-
-        ALGORITHM:
-            1. iterate through each node
-            2. check each node's surroundings
-            3. for each direction in the surroundings that are open, check if each square
-               in that direction is a node.
-               a) if it is a node, add it to the adjacent node dictionary of the orignial
-                  node.
-               b) if it is not a node, ignore it and continue
-        """
+        """Connect the nodes"""
 
         direction_sums = {
             'up': (0, -1),
@@ -146,41 +146,43 @@ class Maze(object):
 
         node_list = self.node_list()
 
+        # Loop through the nodes
         for key in self.node_dict:
 
+            # Pull a given node from the dictionary, get some of its attributes
             node = self.node_dict[key]
             surroundings = node.surroundings
             x_pos = node.x_pos
             y_pos = node.y_pos
 
-            # print '\n\n', node.adjacent_nodes
-
+            # Loop through its surroundings, find nodes
             for direction in surroundings:
 
                 path = surroundings[direction]
 
                 if path:
 
-                    node.adjacent_nodes[direction] = self.check_nodes_in_dir(x_pos, y_pos, direction_sums[direction])
+                    node_in_dir = self.check_nodes_in_dir(x_pos, y_pos, direction_sums[direction])
+                    node.set_adjacent_nodes(direction, node_in_dir)
 
                 else:
 
-                    node.adjacent_nodes[direction] = None
+                    node.set_adjacent_nodes(direction, None)
 
-            # print node.adjacent_nodes
-
+    # Define function to check for nodes in given dir
     def check_nodes_in_dir(self, x_pos, y_pos, direc_sum):
         """
            Checks for nodes in the direction directed by direc_sum using recursion.
            Very specified just for the `make_graph()` method. TODO: Make it generalized
         """
 
+        # `direc_sum` is `direction_sums` tuple defined below
         x_pos += direc_sum[0]
         y_pos += direc_sum[1]
 
         try:
             return self.get_node_by_pos(x_pos, y_pos)
-        except:
+        except KeyError:
             return self.check_nodes_in_dir(x_pos, y_pos, direc_sum)
 
     def get_pixel(self, x_pos, y_pos, maze=None):
