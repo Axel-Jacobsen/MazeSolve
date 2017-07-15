@@ -4,7 +4,3 @@ This is my attempt at a maze solving program, heavily inspired by [this video](h
 
 Dependencies: https://python-pillow.org
 ---
-TODO:
-- FIRST: Do not hardcode filename of maze
-- Write a program to make a post request to http://hereandabove.com/maze/mazeorig.form.html to get new files of variable sizes
-- Make it so it is not required for the start and end to be on the top and bottom respectively
