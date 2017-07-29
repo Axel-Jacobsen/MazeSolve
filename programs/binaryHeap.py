@@ -34,7 +34,7 @@ class BinaryHeap(object):
 
         parent = self.parent(i)
 
-        if (parent is not None) and (self.heap[i] < self.heap[parent]):
+        if (parent is not None) and (self.heap[i][1] < self.heap[parent][1]):
 
             self.switch(i, parent)
 
@@ -47,7 +47,7 @@ class BinaryHeap(object):
 
         right_child = self.right_child(i)
 
-        if left_child and self.heap[left_child] < self.heap[i]:
+        if left_child and (self.heap[left_child][1] < self.heap[i][1]):
 
             smallest = left_child
 
@@ -55,14 +55,14 @@ class BinaryHeap(object):
 
             smallest = i
 
-        if right_child and self.heap[right_child] < self.heap[smallest]:
+        if right_child and (self.heap[right_child][1] < self.heap[smallest][1]):
 
             smallest = right_child
 
         if smallest != i:
 
             self.switch(i, smallest)
-            
+
             self.bubble_down(smallest)
 
     def switch(self, a, b):

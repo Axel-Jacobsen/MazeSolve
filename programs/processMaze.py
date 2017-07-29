@@ -9,11 +9,7 @@ from cropBorder import cropBorder
 
 class Maze(object):
 
-    BLACK = (0, 0, 0)
-    WHITE = (255, 255, 255)
-    RED = (255, 0, 0)
-    GREEN = (0, 255, 0)
-    BLUE = (0, 0, 255)
+    # Start of Node Class #
 
     class Node(object):
 
@@ -38,6 +34,16 @@ class Maze(object):
             """Sets adjacent node"""
             self._adjacent_nodes[key] = value
 
+    # End of Node Class #
+
+    BLACK = (0, 0, 0)
+    WHITE = (255, 255, 255)
+    RED = (255, 0, 0)
+    GREEN = (0, 255, 0)
+    BLUE = (0, 0, 255)
+
+    start_node = None
+    end_node = None
 
     def __init__(self, filename, to_crop=False):
 
@@ -46,7 +52,7 @@ class Maze(object):
         self.height, self.width = self.maze.size
         self.node_dict = self.find_nodes()[0]
         self.node_maze = Image.open(self.find_nodes()[1])
-        self.graph = self.make_graph()
+        self.make_graph()
 
     def get_surroundings(self, x_pos, y_pos):
         """Gets the values of up,down,left,right at given coords."""
@@ -92,6 +98,8 @@ class Maze(object):
 
                 node_dict[node_name] = self.Node(x, 0, surroundings=self.get_surroundings(x,0), start=True)
 
+                self.start_node = node_name
+
                 maze_copy.putpixel((x, 0), self.RED)
 
             if self.maze.getpixel((x, self.height-1)) == self.WHITE:
@@ -99,6 +107,8 @@ class Maze(object):
                 node_name = 'node_%s_%s' % (x, self.height-1)
 
                 node_dict['node_%s_%s' % (x, self.height-1)] = self.Node(x, self.height-1, surroundings=self.get_surroundings(x, self.height-1), end=True)
+
+                self.end_node = node_name
 
                 maze_copy.putpixel((x, self.height-1), self.RED)
 
@@ -216,5 +226,6 @@ if __name__ == '__main__':
     os.chdir(os.getcwd() + '/mazes')
 
     maze = Maze('smallmaze.png', to_crop=True)
+    print maze.get_node_by_pos(3,0).adjacent_nodes
 
     print 'Success'
