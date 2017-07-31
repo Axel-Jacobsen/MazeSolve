@@ -22,9 +22,6 @@ class Maze(object):
             self.end = end
             self._adjacent_nodes = {}
 
-        def __str__(self):
-            return self.name
-
         @property
         def adjacent_nodes(self):
             """Adjacent Node Property"""
@@ -225,7 +222,8 @@ if __name__ == '__main__':
     os.chdir('..')
     os.chdir(os.getcwd() + '/mazes')
 
-    maze = Maze('smallmaze.png', to_crop=True)
-    print maze.get_node_by_pos(3,0).adjacent_nodes
+    maze = Maze('Nodes_smallmaze.png', to_crop=False)
+    maze.maze.putpixel((13, 15), maze.BLUE)
+    maze.maze.save('Nodes_smallmaze.png')
 
     print 'Success'
