@@ -79,7 +79,7 @@ class mazeSolve(object):
 
             draw.line(line_coords, fill=(66, 134, 244))
 
-        filename = 'solution_' + self.maze.maze.filename
+        filename = self.maze.maze.filename.replace('cropped', 'solution')
         maze_copy.save(filename)
 
     def solve(self):
