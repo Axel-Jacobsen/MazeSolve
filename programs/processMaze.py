@@ -3,7 +3,7 @@ import time
 
 from PIL import Image
 
-from cropBorder import cropBorder
+from cleanMaze import cropBorder
 
 """MAZES FROM http://hereandabove.com/maze/mazeorig.form.html"""
 
@@ -21,6 +21,7 @@ class Maze(object):
             self.start = start
             self.end = end
             self._adjacent_nodes = {}
+            self._prev_node = None
 
         @property
         def adjacent_nodes(self):
@@ -30,6 +31,15 @@ class Maze(object):
         def set_adjacent_nodes(self, key, value):
             """Sets adjacent node"""
             self._adjacent_nodes[key] = value
+
+        @property
+        def prev_node(self):
+            """Previous Node Property"""
+            return self._prev_node
+
+        def set_prev_node(self, value):
+            """Set Previous node"""
+            self._prev_node = value
 
     # End of Node Class #
 
@@ -72,7 +82,7 @@ class Maze(object):
             if surroundings[direction]:
                 pix = self.maze.getpixel(surroundings[direction])
 
-                if pix != self.BLACK:
+                if not self.check_black(pix):
                     surroundings[direction] = True
                 else:
                     surroundings[direction] = False
@@ -89,7 +99,9 @@ class Maze(object):
         # Get start and end nodes
         for x in xrange(self.width):
 
-            if self.maze.getpixel((x, 0)) == self.WHITE:
+            pix = self.maze.getpixel((x, 0))
+
+            if self.check_white(pix):
 
                 node_name = 'node_%s_%s' % (x, 0)
 
@@ -97,23 +109,28 @@ class Maze(object):
 
                 self.start_node = node_name
 
-                maze_copy.putpixel((x, 0), self.RED)
+                # maze_copy.putpixel((x, 0), self.RED)
+                self.color_pixel(x, 0, self.RED)
 
-            if self.maze.getpixel((x, self.height-1)) == self.WHITE:
+            pix = self.maze.getpixel((x, self.height-1))
+
+            if self.check_white(pix):
 
                 node_name = 'node_%s_%s' % (x, self.height-1)
 
-                node_dict['node_%s_%s' % (x, self.height-1)] = self.Node(x, self.height-1, surroundings=self.get_surroundings(x, self.height-1), end=True)
+                node_dict[node_name] = self.Node(x, self.height-1, surroundings=self.get_surroundings(x, self.height-1), end=True)
 
                 self.end_node = node_name
 
-                maze_copy.putpixel((x, self.height-1), self.RED)
+                # maze_copy.putpixel((x, self.height-1), self.RED)
+                self.color_pixel(x, self.height-1, self.RED)
 
         # Get the rest of the nodes
         for y in xrange(1, self.height-1):
             for x in xrange(1, self.width):
 
-                if self.maze.getpixel((x,y)) == self.WHITE:
+                pix = self.maze.getpixel((x,y))
+                if self.check_white(pix):
 
                     isNode = True
                     directions = self.get_surroundings(x,y)
@@ -155,10 +172,9 @@ class Maze(object):
         node_list = self.node_list()
 
         # Loop through the nodes
-        for key in self.node_dict:
+        for key, node in self.node_dict.items():
 
             # Pull a given node from the dictionary, get some of its attributes
-            node = self.node_dict[key]
             surroundings = node.surroundings
             x_pos = node.x_pos
             y_pos = node.y_pos
@@ -189,7 +205,7 @@ class Maze(object):
            Very specified just for the `make_graph()` method. TODO: Make it generalized
         """
 
-        # `direc_sum` is `direction_sums` tuple defined below
+        # `direc_sum` is `direction_sums` tuple defined above
         x_pos += direc_sum[0]
         y_pos += direc_sum[1]
 
@@ -199,12 +215,10 @@ class Maze(object):
         except KeyError:
             return self.check_nodes_in_dir(x_pos, y_pos, direc_sum)
 
-    def get_pixel(self, x_pos, y_pos, maze=None):
+    def get_pixel(self, x_pos, y_pos):
         """Return pixel RGB Value"""
-        if maze is None:
-            maze = self.maze
 
-        return maze.getpixel((x_pos, y_pos))
+        return self.maze.getpixel((x_pos, y_pos), 'RGB')
 
     def get_node_by_pos(self, x_pos, y_pos):
         """Gets node from the x and y position"""
@@ -216,14 +230,38 @@ class Maze(object):
         """returns node names"""
         return self.node_dict.keys()
 
+    def color_pixel(self, x, y, color, filename=None):
+
+        filename = filename if filename else self.maze.filename
+
+        self.maze.putpixel((x, y), color)
+        self.maze.save(filename)
+
+    def remove_color(self):
+
+        for x in xrange(self.width):
+            for y in xrange(self.height-1):
+
+                pix = self.maze.getpixel((x, y))
+
+                if not self.check_white(pix) and not self.check_black(pix):
+
+                    self.color_pixel(x, y, self.WHITE)
+
+    def check_white(self, rgb_tuple):
+        """Checks if rgb_tuple is white"""
+        return True if rgb_tuple == (255,255,255) or rgb_tuple == (255,255,255,255) else False
+
+    def check_black(self, rgb_tuple):
+        """Checks if rgb_tuple is black"""
+        return True if rgb_tuple == (0,0,0) or rgb_tuple == (0,0,0,255) else False
+
 if __name__ == '__main__':
 
     # TODO: Find neater way to acomplish this
     os.chdir('..')
     os.chdir(os.getcwd() + '/mazes')
 
-    maze = Maze('Nodes_smallmaze.png', to_crop=False)
-    maze.maze.putpixel((13, 15), maze.BLUE)
-    maze.maze.save('Nodes_smallmaze.png')
+    maze = Maze('large_maze.png', to_crop=True)
 
     print 'Success'

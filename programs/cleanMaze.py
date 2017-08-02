@@ -8,6 +8,7 @@ def cropBorder(image_file):
     """
 
     height, width = image_file.size
+
     filename = 'cropped_' + image_file.filename
 
     cropPic = image_file.crop((1,1,width-1,height-1)).save(filename)
