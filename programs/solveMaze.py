@@ -1,4 +1,4 @@
-import os
+import os, timeit
 
 from PIL import ImageDraw
 
@@ -122,7 +122,7 @@ if __name__ == '__main__':
     os.chdir('..')
     os.chdir(os.getcwd() + '/mazes')
 
-    dijkstra = mazeSolve('large_maze.png', to_crop=True)
+    dijkstra = mazeSolve('smallmaze.png', to_crop=True)
 
     dijkstra.solve()
 

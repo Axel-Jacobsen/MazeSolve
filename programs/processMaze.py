@@ -1,5 +1,4 @@
 import os
-import time
 
 from PIL import Image
 
@@ -255,13 +254,3 @@ class Maze(object):
     def check_black(self, rgb_tuple):
         """Checks if rgb_tuple is black"""
         return True if rgb_tuple == (0,0,0) or rgb_tuple == (0,0,0,255) else False
-
-if __name__ == '__main__':
-
-    # TODO: Find neater way to acomplish this
-    os.chdir('..')
-    os.chdir(os.getcwd() + '/mazes')
-
-    maze = Maze('large_maze.png', to_crop=True)
-
-    print 'Success'
