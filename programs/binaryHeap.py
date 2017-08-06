@@ -34,14 +34,29 @@ class BinaryHeap(object):
 
         parent = self.parent(i)
 
-        if (parent is not None) and (self.heap[i][1] < self.heap[parent][1]):
+        while (parent is not None) and (self.heap[i][1] < self.heap[parent][1]):
 
             self.switch(i, parent)
 
-            self.bubble_up(parent)
+            parent = self.parent(parent)
 
     def bubble_down(self, i):
         """Modifies self.heap such that index is a root of a heap (bubble down)"""
+
+        smallest = self.find_smallest(i)
+
+        org = i
+
+        while smallest != org:
+
+            self.switch(org, smallest)
+
+            org = smallest
+
+            smallest = self.find_smallest(smallest)
+
+    def find_smallest(self, i):
+        """Finds the smallest node of a triplet in a binary tree (i.e. parent and 2 children)"""
 
         left_child = self.left_child(i)
 
@@ -59,11 +74,7 @@ class BinaryHeap(object):
 
             smallest = right_child
 
-        if smallest != i:
-
-            self.switch(i, smallest)
-
-            self.bubble_down(smallest)
+        return smallest
 
     def switch(self, a, b):
         """Switches values positions a and b in array"""

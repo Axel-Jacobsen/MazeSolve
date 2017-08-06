@@ -88,8 +88,8 @@ class Maze(object):
 
         return surroundings
 
-    def find_nodes(self):
-        """Finds and returns nodes in a maze"""
+    def find_start_end_horizontal(self):
+        """Checks top and bottom for for start/end node"""
 
         maze_copy = self.maze.copy()
 
@@ -100,7 +100,7 @@ class Maze(object):
 
             pix = self.maze.getpixel((x, 0))
 
-            if self.check_white(pix):
+            if self.check_white(pix) and not self.start_node:
 
                 node_name = 'node_%s_%s' % (x, 0)
 
@@ -108,12 +108,11 @@ class Maze(object):
 
                 self.start_node = node_name
 
-                # maze_copy.putpixel((x, 0), self.RED)
                 self.color_pixel(x, 0, self.RED)
 
             pix = self.maze.getpixel((x, self.height-1))
 
-            if self.check_white(pix):
+            if self.check_white(pix) and not self.end_node:
 
                 node_name = 'node_%s_%s' % (x, self.height-1)
 
@@ -121,8 +120,62 @@ class Maze(object):
 
                 self.end_node = node_name
 
-                # maze_copy.putpixel((x, self.height-1), self.RED)
                 self.color_pixel(x, self.height-1, self.RED)
+
+        return node_dict
+
+    def find_start_end_vertical(self):
+        """Checks left and right for start/end node"""
+
+        maze_copy = self.maze.copy()
+
+        node_dict = {}
+
+        if not self.start_node:
+
+            for y in xrange(self.height-1):
+
+                pix = self.maze.getpixel((0, y))
+
+                if self.check_white(pix):
+
+                    node_name = 'node_%s_%s' % (0, y)
+
+                    node_dict[node_name] = self.Node(0, y, surroundings=self.get_surroundings(0,y), start=True)
+
+                    self.start_node = node_name
+
+                    self.color_pixel(0, y, self.RED)
+
+        if not self.end_node:
+
+            for y in xrange(self.height-1):
+
+                pix = self.maze.getpixel((x, self.height-1))
+
+                if self.check_white(pix):
+
+                    node_name = 'node_%s_%s' % (self.width, y)
+
+                    node_dict[node_name] = self.Node(self.width, y, surroundings=self.get_surroundings(self.width, y), end=True)
+
+                    self.end_node = node_name
+
+                    self.color_pixel(self.width, y, self.RED)
+
+        return node_dict
+
+    def find_nodes(self):
+        """Finds and returns nodes in a maze"""
+
+        maze_copy = self.maze.copy()
+
+        node_dict_1 = self.find_start_end_horizontal()
+
+        node_dict_2 = self.find_start_end_vertical()
+
+        node_dict = node_dict_1.copy()
+        node_dict.update(node_dict_2)
 
         # Get the rest of the nodes
         for y in xrange(1, self.height-1):
@@ -154,6 +207,7 @@ class Maze(object):
                         maze_copy.putpixel((x, y), self.RED)
 
         filename =  self.maze.filename.replace('cropped_', 'nodes_')
+
         maze_copy.save(filename)
 
         return node_dict, filename
@@ -168,7 +222,7 @@ class Maze(object):
             'right': (1, 0)
         }
 
-        node_list = self.node_list()
+        node_list = self.node_dict.keys()
 
         # Loop through the nodes
         for key, node in self.node_dict.items():
@@ -200,19 +254,22 @@ class Maze(object):
 
     def check_nodes_in_dir(self, x_pos, y_pos, direc_sum):
         """
-           Checks for nodes in the direction directed by direc_sum using recursion.
-           Very specified just for the `make_graph()` method. TODO: Make it generalized
+           Checks for nodes in the direction directed by direc_sum.
+           Very specified just for the `make_graph()` method.
         """
 
         # `direc_sum` is `direction_sums` tuple defined above
         x_pos += direc_sum[0]
         y_pos += direc_sum[1]
 
-        try:
-            # Once you find a node, return the node and its position in a tuple (to calculate ditance)
-            return (self.get_node_by_pos(x_pos, y_pos), (x_pos, y_pos))
-        except KeyError:
-            return self.check_nodes_in_dir(x_pos, y_pos, direc_sum)
+
+        node = self.get_node_by_pos(x_pos, y_pos)
+        while not node:
+            x_pos += direc_sum[0]
+            y_pos += direc_sum[1]
+            node = self.get_node_by_pos(x_pos, y_pos)
+
+        return node, (x_pos, y_pos)
 
     def get_pixel(self, x_pos, y_pos):
         """Return pixel RGB Value"""
@@ -223,11 +280,7 @@ class Maze(object):
         """Gets node from the x and y position"""
 
         node_name = 'node_%s_%s' % (x_pos, y_pos)
-        return self.node_dict[node_name]
-
-    def node_list(self):
-        """returns node names"""
-        return self.node_dict.keys()
+        return self.node_dict.get(node_name, None)
 
     def color_pixel(self, x, y, color, filename=None):
 
@@ -254,3 +307,12 @@ class Maze(object):
     def check_black(self, rgb_tuple):
         """Checks if rgb_tuple is black"""
         return True if rgb_tuple == (0,0,0) or rgb_tuple == (0,0,0,255) else False
+
+if __name__ == '__main__':
+
+    os.chdir('..')
+    os.chdir(os.getcwd() + '/mazes')
+
+    maze = Maze('unbalanced.png', to_crop=True)
+
+    print 'Success'
