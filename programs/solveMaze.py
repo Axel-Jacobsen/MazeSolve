@@ -1,4 +1,4 @@
-import os, timeit
+import os, timeit, argparse
 
 from PIL import ImageDraw
 
@@ -119,11 +119,26 @@ class mazeSolve(object):
 
 if __name__ == '__main__':
 
+    """Argument Parser for maze."""
+    parser = argparse.ArgumentParser(description='Solves picture of a maze')
+    parser.add_argument('-f', '--filename', help='Filename of the maze')
+    parser.add_argument('-c', '--to_crop', help='to_crop should be True if there is a white border around the maze. True default')
+    parser.add_argument('-d', '--directory', help='Directory of the maze (relative path from Maze Solve)- assumed to be /mazes')
+    args = parser.parse_args()
+
+    """Giving defaults to arg parser"""
+    filename = args.filename if args.filename else 'smallmaze.png'
+    to_crop = False if args.to_crop == False else True
+    directory = args.directory if args.directory else '/mazes'
+
+    """Change directory for mazes"""
     os.chdir('..')
-    os.chdir(os.getcwd() + '/mazes')
+    os.chdir(os.getcwd() + directory)
 
-    dijkstra = mazeSolve('smallmaze.png', to_crop=True)
+    """Create maze solving object"""
+    dijkstra = mazeSolve(filename, to_crop=to_crop)
 
+    """Solve Maze"""
     dijkstra.solve()
 
     print 'Success'
