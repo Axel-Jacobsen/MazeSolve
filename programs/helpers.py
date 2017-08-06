@@ -17,7 +17,15 @@ def cropBorder(image_file):
 
     return filename
 
-def replace_print(obj, wait_time):
+def print_replace(obj, wait_time=None):
+    """
+       Print option that will overwrite previous print.
+       obj is what is being printed, wait_time is the
+       time to wait if we are printing individual objects in
+       a memory structure
+    """
     sys.stdout.write("\r" + obj)
     sys.stdout.flush()
-    time.sleep(wait_time)
+
+    if wait_time:
+        time.sleep(wait_time)
