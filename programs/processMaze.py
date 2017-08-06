@@ -2,7 +2,7 @@ import os
 
 from PIL import Image
 
-from cleanMaze import cropBorder
+from helpers import cropBorder
 
 """MAZES FROM http://hereandabove.com/maze/mazeorig.form.html"""
 
