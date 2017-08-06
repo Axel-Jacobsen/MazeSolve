@@ -59,6 +59,7 @@ class Maze(object):
         self.node_dict = self.find_nodes()[0]
         self.node_maze = Image.open(self.find_nodes()[1])
         self.make_graph()
+        print "PROCESSING MAZE"
 
     def get_surroundings(self, x_pos, y_pos):
         """Gets the values of up,down,left,right at given coords."""
@@ -151,7 +152,7 @@ class Maze(object):
 
             for y in xrange(self.height-1):
 
-                pix = self.maze.getpixel((x, self.height-1))
+                pix = self.maze.getpixel((self.width-1, self.height-1))
 
                 if self.check_white(pix):
 

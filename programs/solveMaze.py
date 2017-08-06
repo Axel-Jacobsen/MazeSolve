@@ -120,6 +120,8 @@ if __name__ == '__main__':
     os.chdir('..')
     os.chdir(os.getcwd() + '/mazes')
 
+    print '*'*10, 'Maze Solver', '*'*10
+
     dijkstra = mazeSolve('big_maze.png', to_crop=True)
 
     dijkstra.solve()
