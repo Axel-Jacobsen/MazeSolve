@@ -2,7 +2,6 @@ import os, timeit, argparse
 
 from PIL import ImageDraw
 
-from helpers import print_replace
 from processMaze import Maze
 from binaryHeap import BinaryHeap
 
@@ -12,9 +11,6 @@ class mazeSolve(object):
     def __init__(self, filename, to_crop=False):
 
         self.maze = Maze(filename, to_crop=to_crop)
-
-        print '\n\n---SOLVING MAZE---\n'
-
         self.nodes = self.maze.node_dict
         self.priority_que = BinaryHeap([list(a) for a in zip(self.nodes.keys(), [float('inf')] * len(self.nodes))])
         # Want to use zip function, but need each item to be mutable. therefore, the `list(a) for a in zip...` notation
@@ -22,7 +18,6 @@ class mazeSolve(object):
         self.path = []
 
     def process(self, curr_node):
-
         current_node = self.nodes[curr_node[0]]
         current_node_distance = curr_node[1]
 
@@ -47,31 +42,20 @@ class mazeSolve(object):
             current_node = self.nodes[self.priority_que.heap[0][0]]
             current_node_distance = self.priority_que.heap[0][1]
 
-            print_replace('Investigating {}'.format(current_node.name))
-
         end_node = self.priority_que.delete_min()
         end_node[0] = self.nodes[end_node[0]]
 
-        print '\n'
         return end_node
 
     def make_path(self, curr_node):
         """Returns the path from the start node to the end node"""
 
         self.path = [curr_node] + self.path
-        print 'Node path...'
 
-        while curr_node.prev_node:
-
-            print curr_node.prev_node.name, '-->',
-
-            self.path = [curr_node] + self.path
-
-            curr_node = curr_node.prev_node
-
-        print 'DONE!\n\nPath has been drawn'
-
-        return self.path
+        if curr_node.prev_node:
+            return self.make_path(curr_node.prev_node)
+        else:
+            return self.path
 
     def draw_path(self):
         """Creates a new maze image with the solution on it"""
@@ -135,26 +119,25 @@ if __name__ == '__main__':
     """Argument Parser for maze."""
     parser = argparse.ArgumentParser(description='Solves picture of a maze')
     parser.add_argument('-f', '--filename', help='Filename of the maze')
+    parser.add_argument('-c', '--to_crop', help='to_crop should be True if there is a white border around the maze. True default')
     parser.add_argument('-d', '--directory', help='Directory of the maze (relative path from Maze Solve)- assumed to be /mazes')
     args = parser.parse_args()
 
     """Giving defaults to arg parser"""
-    filename = args.filename if args.filename else 'smallmaze.png'
+    filename = args.filename if args.filename else 'maze-2.png'
+    to_crop = False if args.to_crop == False else True
     directory = args.directory if args.directory else '/mazes'
 
     """Change directory for mazes"""
     os.chdir('..')
     os.chdir(os.getcwd() + directory)
 
-    #----------------------Solve the maze-------------------------#
+    #-----------------------------------------------#
 
-    print '\n', '-'*10, 'Maze Solver', '-'*10
+    print '*'*10, 'Maze Solver', '*'*10
 
-    dijkstra = mazeSolve(filename, to_crop=True)
+    dijkstra = mazeSolve(filename, to_crop=to_crop)
 
     dijkstra.solve()
 
-    print '\n\n---MAZE HAS BEEN SOLVED---', '\n'
-    print 'The filename of the solved maze is: {}\n'.format('solution_' + dijkstra.maze.maze.filename)
-
-    print '---Success---'
+    print 'Success'
