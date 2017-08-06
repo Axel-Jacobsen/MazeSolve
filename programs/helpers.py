@@ -1,3 +1,5 @@
+import time, sys
+
 from PIL import Image
 
 def cropBorder(image_file):
@@ -14,3 +16,8 @@ def cropBorder(image_file):
     cropPic = image_file.crop((1,1,width-1,height-1)).save(filename)
 
     return filename
+
+def replace_print(obj, wait_time):
+    sys.stdout.write("\r" + obj)
+    sys.stdout.flush()
+    time.sleep(wait_time)

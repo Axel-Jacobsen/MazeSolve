@@ -19,12 +19,10 @@ class mazeSolve(object):
 
     def process(self, curr_node):
 
-        self.heapify()
-
         current_node = self.nodes[curr_node[0]]
         current_node_distance = curr_node[1]
 
-        if current_node.end == False:
+        while current_node.end == False:
 
             # Add min node to visited_nodes and remove it from the priority_que
             self.visited_nodes.add(current_node.name)
@@ -42,14 +40,13 @@ class mazeSolve(object):
 
             self.heapify()
 
-            return self.process(self.priority_que.heap[0])
+            current_node = self.nodes[self.priority_que.heap[0][0]]
+            current_node_distance = self.priority_que.heap[0][1]
 
-        else:
+        end_node = self.priority_que.delete_min()
+        end_node[0] = self.nodes[end_node[0]]
 
-            end_node = self.priority_que.delete_min()
-            end_node[0] = self.nodes[end_node[0]]
-
-            return end_node
+        return end_node
 
     def make_path(self, curr_node):
         """Returns the path from the start node to the end node"""
@@ -89,6 +86,7 @@ class mazeSolve(object):
         start = self.maze.start_node
 
         self.add_value(start, 0)
+        self.heapify()
 
         end_node = self.process([start, 0])
 
@@ -135,10 +133,12 @@ if __name__ == '__main__':
     os.chdir('..')
     os.chdir(os.getcwd() + directory)
 
-    """Create maze solving object"""
+    #-----------------------------------------------#
+
+    print '*'*10, 'Maze Solver', '*'*10
+
     dijkstra = mazeSolve(filename, to_crop=to_crop)
 
-    """Solve Maze"""
     dijkstra.solve()
 
     print 'Success'
