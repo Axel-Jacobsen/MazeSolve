@@ -1,9 +1,10 @@
-import os, timeit, argparse
+import os, time, timeit, argparse
 
 from PIL import ImageDraw
 
 from processMaze import Maze
 from binaryHeap import BinaryHeap
+from helpers import replace_print
 
 class mazeSolve(object):
     """Takes in a maze, makes a graph, and solves it"""
@@ -17,12 +18,29 @@ class mazeSolve(object):
         self.visited_nodes = set()
         self.path = []
 
+    def solve(self):
+        """Connects the nodes from the starting node to the ending node"""
+
+        # Find the starting node of the maze, add it to self.visited_nodes, and assign the node a distance from the start of 0
+        start = self.maze.start_node
+
+        self.add_value(start, 0)
+        self.heapify()
+
+        end_node = self.process([start, 0])
+
+        self.make_path(end_node[0])
+
+        self.draw_path()
+
     def process(self, curr_node):
 
         current_node = self.nodes[curr_node[0]]
         current_node_distance = curr_node[1]
 
         while current_node.end == False:
+
+            replace_print('Investigating {:18}'.format(current_node.prettify))
 
             # Add min node to visited_nodes and remove it from the priority_que
             self.visited_nodes.add(current_node.name)
@@ -46,6 +64,10 @@ class mazeSolve(object):
         end_node = self.priority_que.delete_min()
         end_node[0] = self.nodes[end_node[0]]
 
+        replace_print('End node has been found: {}'.format(end_node[0].prettify))
+        print '\n'
+        print 'The path length from start to end node is {} pixels long\n'.format(end_node[1])
+
         return end_node
 
     def make_path(self, curr_node):
@@ -57,6 +79,20 @@ class mazeSolve(object):
 
             self.path = [curr_node.prev_node] + self.path
             curr_node = curr_node.prev_node
+
+        if len(self.path) < 1000:
+            self.print_path()
+
+    def print_path(self):
+        """Prints the path of the nodes"""
+
+        print 'Here is the path for the maze:',
+
+        for node in self.path:
+
+            print node.name, '-->',
+
+        print 'DONE!\n'
 
     def draw_path(self):
         """Creates a new maze image with the solution on it"""
@@ -79,22 +115,7 @@ class mazeSolve(object):
         filename = self.maze.maze.filename.replace('cropped', 'solution')
         maze_copy.save(filename)
 
-    def solve(self):
-        """Connects the nodes from the starting node to the ending node"""
-
-        # Find the starting node of the maze, add it to self.visited_nodes, and assign the node a distance from the start of 0
-        start = self.maze.start_node
-
-        self.add_value(start, 0)
-        self.heapify()
-
-        end_node = self.process([start, 0])
-
-        self.make_path(end_node[0])
-
-        self.draw_path()
-
-    # This function is O(n), which is unideal. But the binary heap isn't super fast anyways. TODO: Fix
+    # Maybe use a numpy array in the future for faster indexing?
     def add_value(self, node, value):
         """Finds `node` in priority_que and assigns `value` to it's second value. If the node hasn't been discovered yet, assign it's distance `value`. Else add value to it's distance"""
         found = False
@@ -114,22 +135,35 @@ class mazeSolve(object):
         """Shortcut method"""
         self.priority_que.heapify()
 
+def parser():
+    parser = argparse.ArgumentParser(description="Maze solving program, employing dijkstra's path finding algorithm.")
+    parser.add_argument("-f", "--filename", help='The filename of the maze. If left blank, an example is provided.')
+    parser.add_argument("-d", "--directory", help='The directory of the maze. If left black, the maze is assumed to be in /mazes')
+    parser.add_argument("-c", "--to_crop", help='The directory of the maze. If left black, the maze is assumed to be in /mazes', default=True)
+    
+    return parser.parse_args()
 
 if __name__ == '__main__':
 
-    """Change directory for mazes"""
+    args = parser()
+
+    filename = args.filename if args.filename else 'smallmaze.png'
+    directory = args.directory if args.directory else '/mazes'
+    to_crop = args.to_crop
+
     os.chdir('..')
-    os.chdir(os.getcwd() + '/mazes')
+    os.chdir(os.getcwd() + directory)
 
     #-----------------------------------------------#
 
-    print '*'*10, 'Maze Solver', '*'*10
+    print '\n', '*'*10, 'Maze Solver', '*'*10, '\n'
 
-    dijkstra = mazeSolve('unbalanced.png', to_crop=True)
+    t1 = time.time()
 
-    if dijkstra.nodes[dijkstra.maze.start_node].start:
-        dijkstra.solve()
-        print 'Success'
+    dijkstra = mazeSolve(filename, to_crop=to_crop)
+    dijkstra.solve()
 
-    else:
-        print 'Failure: No start node'
+    t2 = time.time()
+
+    print 'Success! The solved maze has the name `{}`'.format(dijkstra.maze.maze.filename).replace('cropped', 'solution')
+    print 'The maze took {:.3f} seconds to process and solve!\n'.format(t2 - t1)

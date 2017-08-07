@@ -2,7 +2,7 @@ import os
 
 from PIL import Image
 
-from helpers import cropBorder
+from helpers import cropBorder, replace_print
 
 """MAZES FROM http://hereandabove.com/maze/mazeorig.form.html"""
 
@@ -40,6 +40,10 @@ class Maze(object):
             """Set Previous node"""
             self._prev_node = value
 
+        @property
+        def prettify(self):
+            return 'Node at ({}, {})'.format(self.x_pos, self.y_pos)
+
     # End of Node Class #
 
     BLACK = (0, 0, 0)
@@ -53,12 +57,18 @@ class Maze(object):
 
     def __init__(self, filename, to_crop=False):
 
-        print "PROCESSING MAZE"
-        self.image = Image.open(filename)
-        self.maze = Image.open(cropBorder(self.image)) if to_crop else self.image
+        print '---------------'
+        print 'Processing Maze'
+        print '---------------\n'
+
+        self.maze = cropBorder(Image.open(filename)) if to_crop else Image.open(filename)
         self.height, self.width = self.maze.size
         self.node_dict = self.find_nodes()
         self.make_graph()
+
+        print '---------------'
+        print 'Solving Maze'
+        print '---------------\n'
 
     def get_surroundings(self, x_pos, y_pos):
         """Gets the values of up,down,left,right at given coords."""
@@ -141,9 +151,11 @@ class Maze(object):
 
             if is_start:
                 self.start_node = node_name
+                print 'Found Start Node: {}'.format(node_dict[node_name].prettify)
 
             if is_end:
                 self.end_node = node_name
+                print 'Found End Node: {}'.format(node_dict[node_name].prettify), '\n'
 
             is_start = False
             is_end = True
@@ -160,11 +172,14 @@ class Maze(object):
         for key, node in node_dict.items():
             maze_copy.putpixel((node.x_pos, node.y_pos), self.RED)
 
+        found_nodes = 2
+
         # Get the rest of the nodes
         for y in xrange(1, self.height - 1):
             for x in xrange(1, self.width):
 
                 pix = self.maze.getpixel((x,y))
+
                 if self.check_white(pix):
 
                     isNode = True
@@ -185,11 +200,16 @@ class Maze(object):
 
                     # Color maze, assign nodes
                     if isNode:
+
                         node_dict['node_%s_%s' % (x,y)] = self.Node(x, y, surroundings=self.get_surroundings(x,y))
+
+                        found_nodes += 1
+                        replace_print('Number of nodes found: {}'.format(found_nodes))
 
                         maze_copy.putpixel((x, y), self.RED)
 
-        filename =  self.maze.filename.replace('cropped_', 'nodes_')
+        print '\n'
+        filename =  self.maze.filename.replace('cropped', 'nodes')
         maze_copy.save(filename)
 
         return node_dict
@@ -197,14 +217,15 @@ class Maze(object):
     def make_graph(self):
         """Connect the nodes"""
 
+        connected_nodes = 0
+        total_nodes = len(self.node_dict.keys())
+
         direction_sums = {
             'up': (0, -1),
             'down': (0, 1),
             'left': (-1, 0),
             'right': (1, 0)
         }
-
-        node_list = self.node_dict.keys()
 
         # Loop through the nodes
         for key, node in self.node_dict.items():
@@ -233,6 +254,12 @@ class Maze(object):
                 else:
 
                     node.set_adjacent_nodes(direction, None)
+
+            connected_nodes += 1
+            replace_print('Number of connected nodes: {0} ({1:.2f} %)'.format(connected_nodes, connected_nodes / total_nodes * 100))
+
+        print '\n'
+
 
     def check_nodes_in_dir(self, x_pos, y_pos, direc_sum):
         """
@@ -289,12 +316,3 @@ class Maze(object):
     def check_black(self, rgb_tuple):
         """Checks if rgb_tuple is black"""
         return True if rgb_tuple == (0,0,0) or rgb_tuple == (0,0,0,255) else False
-
-if __name__ == '__main__':
-
-    os.chdir('..')
-    os.chdir(os.getcwd() + '/mazes')
-
-    maze = Maze('unbalanced.png', to_crop=True)
-
-    print 'Success'
