@@ -53,13 +53,12 @@ class Maze(object):
 
     def __init__(self, filename, to_crop=False):
 
+        print "PROCESSING MAZE"
         self.image = Image.open(filename)
         self.maze = Image.open(cropBorder(self.image)) if to_crop else self.image
         self.height, self.width = self.maze.size
-        self.node_dict = self.find_nodes()[0]
-        self.node_maze = Image.open(self.find_nodes()[1])
+        self.node_dict = self.find_nodes()
         self.make_graph()
-        print "PROCESSING MAZE"
 
     def get_surroundings(self, x_pos, y_pos):
         """Gets the values of up,down,left,right at given coords."""
@@ -89,80 +88,65 @@ class Maze(object):
 
         return surroundings
 
-    def find_start_end_horizontal(self):
-        """Checks top and bottom for for start/end node"""
+    def move_horizontally(self, y):
+        """Moves horizontally along y until it finds a white square, return the x,y positions"""
+        x_y_pairs = []
 
-        maze_copy = self.maze.copy()
-
-        node_dict = {}
-
-        # Get start and end nodes
         for x in xrange(self.width):
 
-            pix = self.maze.getpixel((x, 0))
+            pix = self.maze.getpixel((x,y))
 
-            if self.check_white(pix) and not self.start_node:
+            if self.check_white(pix):
 
-                node_name = 'node_%s_%s' % (x, 0)
+                x_y_pairs.append((x, y))
 
-                node_dict[node_name] = self.Node(x, 0, surroundings=self.get_surroundings(x,0), start=True)
+        return x_y_pairs
 
-                self.start_node = node_name
+    def move_vertically(self, x):
+        """Moves vertically along x until it finds a white square, return the x,y positions"""
 
-                self.color_pixel(x, 0, self.RED)
+        x_y_pairs = []
 
-            pix = self.maze.getpixel((x, self.height-1))
+        for y in xrange(self.height - 1):
 
-            if self.check_white(pix) and not self.end_node:
+            pix = self.maze.getpixel((x,y))
 
-                node_name = 'node_%s_%s' % (x, self.height-1)
+            if self.check_white(pix):
 
-                node_dict[node_name] = self.Node(x, self.height-1, surroundings=self.get_surroundings(x, self.height-1), end=True)
+                x_y_pairs.append((x, y))
 
-                self.end_node = node_name
+        return x_y_pairs
 
-                self.color_pixel(x, self.height-1, self.RED)
+    def make_start_end_node(self):
+        """Takes the x and y coords of the start node and makes it the start node"""
 
-        return node_dict
-
-    def find_start_end_vertical(self):
-        """Checks left and right for start/end node"""
-
-        maze_copy = self.maze.copy()
+        is_start = True
+        is_end = False
 
         node_dict = {}
 
-        if not self.start_node:
+        # Get x, y coords of start and end nodes
+        x_y_pairs = self.move_horizontally(0)
+        x_y_pairs += self.move_horizontally(self.height-1)
+        x_y_pairs += self.move_vertically(0)
+        x_y_pairs += self.move_vertically(self.width - 1)
 
-            for y in xrange(self.height-1):
+        for x_y in x_y_pairs:
 
-                pix = self.maze.getpixel((0, y))
+            x, y = x_y[0], x_y[1]
 
-                if self.check_white(pix):
+            node_name = 'node_%s_%s' % (x,y)
 
-                    node_name = 'node_%s_%s' % (0, y)
+            node_dict[node_name] = self.Node(x, y, surroundings=self.get_surroundings(x, y), start=is_start, end=is_end)
 
-                    node_dict[node_name] = self.Node(0, y, surroundings=self.get_surroundings(0,y), start=True)
+            if is_start:
+                self.start_node = node_name
 
-                    self.start_node = node_name
+            if is_end:
+                self.end_node = node_name
 
-                    self.color_pixel(0, y, self.RED)
-
-        if not self.end_node:
-
-            for y in xrange(self.height-1):
-
-                pix = self.maze.getpixel((self.width-1, self.height-1))
-
-                if self.check_white(pix):
-
-                    node_name = 'node_%s_%s' % (self.width, y)
-
-                    node_dict[node_name] = self.Node(self.width, y, surroundings=self.get_surroundings(self.width, y), end=True)
-
-                    self.end_node = node_name
-
-                    self.color_pixel(self.width, y, self.RED)
+            is_start = False
+            is_end = True
 
         return node_dict
 
@@ -171,15 +155,13 @@ class Maze(object):
 
         maze_copy = self.maze.copy()
 
-        node_dict_1 = self.find_start_end_horizontal()
+        node_dict = self.make_start_end_node()
 
-        node_dict_2 = self.find_start_end_vertical()
-
-        node_dict = node_dict_1.copy()
-        node_dict.update(node_dict_2)
+        for key, node in node_dict.items():
+            maze_copy.putpixel((node.x_pos, node.y_pos), self.RED)
 
         # Get the rest of the nodes
-        for y in xrange(1, self.height-1):
+        for y in xrange(1, self.height - 1):
             for x in xrange(1, self.width):
 
                 pix = self.maze.getpixel((x,y))
@@ -208,10 +190,9 @@ class Maze(object):
                         maze_copy.putpixel((x, y), self.RED)
 
         filename =  self.maze.filename.replace('cropped_', 'nodes_')
-
         maze_copy.save(filename)
 
-        return node_dict, filename
+        return node_dict
 
     def make_graph(self):
         """Connect the nodes"""
