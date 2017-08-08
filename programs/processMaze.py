@@ -4,8 +4,6 @@ from PIL import Image
 
 from helpers import cropBorder, replace_print
 
-"""MAZES FROM http://hereandabove.com/maze/mazeorig.form.html"""
-
 class Maze(object):
 
     # Start of Node Class #
@@ -217,7 +215,7 @@ class Maze(object):
     def make_graph(self):
         """Connect the nodes"""
 
-        connected_nodes = 0
+        connected_nodes = 0.0
         total_nodes = len(self.node_dict.keys())
 
         direction_sums = {
@@ -256,7 +254,7 @@ class Maze(object):
                     node.set_adjacent_nodes(direction, None)
 
             connected_nodes += 1
-            replace_print('Number of connected nodes: {0} ({1:.2f} %)'.format(connected_nodes, connected_nodes / total_nodes * 100))
+            replace_print('Number of connected nodes: {0:.0f} ({1:.2f} %)'.format(connected_nodes, connected_nodes / total_nodes * 100))
 
         print '\n'
 

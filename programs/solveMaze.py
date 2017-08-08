@@ -38,9 +38,16 @@ class mazeSolve(object):
         current_node = self.nodes[curr_node[0]]
         current_node_distance = curr_node[1]
 
+        connected_nodes = 0.0
+        total_nodes = len(self.nodes)
+
+
         while current_node.end == False:
 
-            replace_print('Investigating {:18}'.format(current_node.prettify))
+            connected_nodes += 1
+            percent = connected_nodes / total_nodes * 100
+
+            replace_print('Investigating {0:18}, number {1:.0f} of {2} nodes ({3:3.2f} %)'.format(current_node.prettify, connected_nodes, total_nodes, percent))
 
             # Add min node to visited_nodes and remove it from the priority_que
             self.visited_nodes.add(current_node.name)
@@ -140,14 +147,14 @@ def parser():
     parser.add_argument("-f", "--filename", help='The filename of the maze. If left blank, an example is provided.')
     parser.add_argument("-d", "--directory", help='The directory of the maze. If left black, the maze is assumed to be in /mazes')
     parser.add_argument("-c", "--to_crop", help='The directory of the maze. If left black, the maze is assumed to be in /mazes', default=True)
-    
+
     return parser.parse_args()
 
 if __name__ == '__main__':
 
     args = parser()
 
-    filename = args.filename if args.filename else 'smallmaze.png'
+    filename = args.filename if args.filename else 'getting_bigger.png'
     directory = args.directory if args.directory else '/mazes'
     to_crop = args.to_crop
 
