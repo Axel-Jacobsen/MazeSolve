@@ -34,6 +34,7 @@ class mazeSolve(object):
         self.draw_path()
 
     def process(self, curr_node):
+        """Process the maze by running through the binary heap, until the end node is found"""
 
         current_node = self.nodes[curr_node[0]]
         current_node_distance = curr_node[1]
@@ -47,7 +48,7 @@ class mazeSolve(object):
             connected_nodes += 1
             percent = connected_nodes / total_nodes * 100
 
-            replace_print('Investigating {0:18}, number {1:.0f} of {2} nodes ({3:3.2f} %)'.format(current_node.prettify, connected_nodes, total_nodes, percent))
+            replace_print('Investigating {0:18}, number {1} of {2} nodes ({3:3.2f} %)'.format(current_node.prettify, int(connected_nodes), total_nodes, percent))
 
             # Add min node to visited_nodes and remove it from the priority_que
             self.visited_nodes.add(current_node.name)
@@ -73,7 +74,7 @@ class mazeSolve(object):
 
         replace_print('End node has been found: {}'.format(end_node[0].prettify))
         print '\n'
-        print 'The path length from start to end node is {} pixels long\n'.format(end_node[1])
+        print 'The path length from start to end node is {} pixels long'.format(end_node[1])
 
         return end_node
 
@@ -93,13 +94,14 @@ class mazeSolve(object):
     def print_path(self):
         """Prints the path of the nodes"""
 
-        print 'Here is the path for the maze:',
+        print '\nHere is the path for the maze:',
 
         for node in self.path:
 
             print node.name, '-->',
 
         print 'DONE!\n'
+        print 'The number of nodes in the solution is {}\n'.format(len(self.path))
 
     def draw_path(self):
         """Creates a new maze image with the solution on it"""
@@ -154,7 +156,7 @@ if __name__ == '__main__':
 
     args = parser()
 
-    filename = args.filename if args.filename else 'getting_bigger.png'
+    filename = args.filename if args.filename else 'smallmaze.png'
     directory = args.directory if args.directory else '/mazes'
     to_crop = args.to_crop
 
