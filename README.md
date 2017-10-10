@@ -10,3 +10,5 @@ Mazes are fetched from [here](http://hereandabove.com/maze/mazeorig.form.html), 
   5. You may have a 1 pixel wide border around the black wall of the maze. The program assumes this and automatically crops the image. If your maze does not need to be cropped, use `python solveMaze -c False`
 
   ---
+
+To get the performance of the program: `python -m cProfile solveMaze.py`
