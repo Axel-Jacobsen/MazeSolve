@@ -34,8 +34,11 @@ class mazeSolve(object):
         self.draw_path()
 
     def process(self, curr_node):
+<<<<<<< HEAD:programs/mazeSolve.py
         """Process the maze by running through the binary heap, until the end node is found"""
 
+=======
+>>>>>>> add-print-statements:programs/solveMaze.py
         current_node = self.nodes[curr_node[0]]
         current_node_distance = curr_node[1]
 
@@ -159,8 +162,15 @@ if __name__ == '__main__':
 
     args = parser()
 
+<<<<<<< HEAD:programs/mazeSolve.py
     filename = args.filename if args.filename else 'smallmaze.png'
     to_crop = args.to_crop
+=======
+    """Giving defaults to arg parser"""
+    filename = args.filename if args.filename else 'maze-2.png'
+    to_crop = False if args.to_crop == False else True
+    directory = args.directory if args.directory else '/mazes'
+>>>>>>> add-print-statements:programs/solveMaze.py
 
     os.chdir('..')
     os.chdir(os.getcwd() + '/mazes')
