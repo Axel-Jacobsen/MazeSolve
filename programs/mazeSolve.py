@@ -72,7 +72,12 @@ class mazeSolve(object):
         end_node = self.priority_que.delete_min()
         end_node[0] = self.nodes[end_node[0]]
 
-        replace_print('End node has been found: {}'.format(end_node[0].prettify))
+        # Final increment and print of "Investigating Node..."
+        connected_nodes += 1
+        percent = connected_nodes / total_nodes * 100
+        replace_print('Investigating {0:18}, number {1} of {2} nodes ({3:3.2f} %)'.format(current_node.prettify, int(connected_nodes), total_nodes, percent))
+
+        print('\nEnd node has been found: {}'.format(end_node[0].prettify))
         print '\n'
         print 'The path length from start to end node is {} pixels long'.format(end_node[1])
 
@@ -124,7 +129,6 @@ class mazeSolve(object):
         filename = self.maze.maze.filename.replace('cropped', 'solution')
         maze_copy.save(filename)
 
-    # Maybe use a numpy array in the future for faster indexing?
     def add_value(self, node, value):
         """Finds `node` in priority_que and assigns `value` to it's second value. If the node hasn't been discovered yet, assign it's distance `value`. Else add value to it's distance"""
         found = False
@@ -147,7 +151,6 @@ class mazeSolve(object):
 def parser():
     parser = argparse.ArgumentParser(description="Maze solving program, employing dijkstra's path finding algorithm.")
     parser.add_argument("-f", "--filename", help='The filename of the maze. If left blank, an example is provided.')
-    parser.add_argument("-d", "--directory", help='The directory of the maze. If left black, the maze is assumed to be in /mazes')
     parser.add_argument("-c", "--to_crop", help='The directory of the maze. If left black, the maze is assumed to be in /mazes', default=True)
 
     return parser.parse_args()
@@ -157,11 +160,10 @@ if __name__ == '__main__':
     args = parser()
 
     filename = args.filename if args.filename else 'smallmaze.png'
-    directory = args.directory if args.directory else '/mazes'
     to_crop = args.to_crop
 
     os.chdir('..')
-    os.chdir(os.getcwd() + directory)
+    os.chdir(os.getcwd() + '/mazes')
 
     #-----------------------------------------------#
 
