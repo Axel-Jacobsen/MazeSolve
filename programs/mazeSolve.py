@@ -48,7 +48,7 @@ class mazeSolve(object):
             connected_nodes += 1
             percent = connected_nodes / total_nodes * 100
 
-            replace_print('Investigating {0:18}, number {1} of {2} nodes ({3:3.2f} %)'.format(current_node.prettify, int(connected_nodes), total_nodes, percent))
+            replace_print('Investigating {0:18} Number {1} of {2} nodes ({3:3.2f} %)'.format(current_node.prettify, int(connected_nodes), total_nodes, percent))
 
             # Add min node to visited_nodes and remove it from the priority_que
             self.visited_nodes.add(current_node.name)
@@ -75,7 +75,7 @@ class mazeSolve(object):
         # Final increment and print of "Investigating Node..."
         connected_nodes += 1
         percent = connected_nodes / total_nodes * 100
-        replace_print('Investigating {0:18}, number {1} of {2} nodes ({3:3.2f} %)'.format(current_node.prettify, int(connected_nodes), total_nodes, percent))
+        replace_print('Investigating {0:18} Number {1} of {2} nodes ({3:3.2f} %)'.format(current_node.prettify, int(connected_nodes), total_nodes, percent))
 
         print('\nEnd node has been found: {}'.format(end_node[0].prettify))
         print '\n'
@@ -93,7 +93,7 @@ class mazeSolve(object):
             self.path = [curr_node.prev_node] + self.path
             curr_node = curr_node.prev_node
 
-        if len(self.path) < 1000:
+        if len(self.path) < 100:
             self.print_path()
 
     def print_path(self):
@@ -104,9 +104,6 @@ class mazeSolve(object):
         for node in self.path:
 
             print node.name, '-->',
-
-        print 'DONE!\n'
-        print 'The number of nodes in the solution is {}\n'.format(len(self.path))
 
     def draw_path(self):
         """Creates a new maze image with the solution on it"""
@@ -121,9 +118,7 @@ class mazeSolve(object):
 
             node = self.path[i]
             next_node = self.path[i + 1]
-
             line_coords = [(node.x_pos, node.y_pos), (next_node.x_pos, next_node.y_pos)]
-
             draw.line(line_coords, fill=(66, 134, 244))
 
         filename = self.maze.maze.filename.replace('cropped', 'solution')
@@ -137,7 +132,6 @@ class mazeSolve(object):
 
             if node == node_dist[0]:
                 node_dist[1] = value if node_dist[1] == float('inf') else (node_dist[1] + value)
-
                 found = True
                 break
 
