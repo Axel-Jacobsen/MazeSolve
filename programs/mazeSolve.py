@@ -1,17 +1,21 @@
-import os, time, timeit, argparse
+import os
+import time
+import argparse
 
 from PIL import ImageDraw
+from PIL import Image
 
 from processMaze import Maze
 from binaryHeap import BinaryHeap
 from helpers import replace_print
 
+
 class mazeSolve(object):
     """Takes in a maze, makes a graph, and solves it"""
 
-    def __init__(self, filename, to_crop=False):
+    def __init__(self, filename, crop=False):
 
-        self.maze = Maze(filename, to_crop=to_crop)
+        self.maze = Maze(filename, crop=crop)
         self.nodes = self.maze.node_dict
         self.priority_que = BinaryHeap([list(a) for a in zip(self.nodes.keys(), [float('inf')] * len(self.nodes))])
         # Want to use zip function, but need each item to be mutable. therefore, the `list(a) for a in zip...` notation
@@ -21,7 +25,6 @@ class mazeSolve(object):
     def solve(self):
         """Connects the nodes from the starting node to the ending node"""
 
-        # Find the starting node of the maze, add it to self.visited_nodes, and assign the node a distance from the start of 0
         start = self.maze.start_node
 
         self.add_value(start, 0)
@@ -41,7 +44,10 @@ class mazeSolve(object):
 
         connected_nodes = 0.0
         total_nodes = len(self.nodes)
-
+        file_num = 1
+        os.chdir('../mazes/creations')
+        prev_filename = 'file0.png'
+        f = open('name_file.txt', 'a')
 
         while current_node.end == False:
 
@@ -58,9 +64,7 @@ class mazeSolve(object):
             adjacent_nodes = current_node.adjacent_nodes
 
             for direction, node_distance in adjacent_nodes.items():
-
                 if node_distance and not (node_distance[0].name in self.visited_nodes):
-
                     self.add_value(node_distance[0].name, node_distance[1] + current_node_distance)
                     node_distance[0].set_prev_node(current_node)
 
@@ -69,15 +73,22 @@ class mazeSolve(object):
             current_node = self.nodes[self.priority_que.heap[0][0]]
             current_node_distance = self.priority_que.heap[0][1]
 
+            gif_filename = 'file' + str(file_num) + '.png'
+            file_num += 1
+            self.new_gif_image((current_node.x_pos, current_node.y_pos), prev_filename, gif_filename)
+            prev_filename = gif_filename
+            f.write(gif_filename + '\n')
+
         end_node = self.priority_que.delete_min()
         end_node[0] = self.nodes[end_node[0]]
+        f.close()
 
         # Final increment and print of "Investigating Node..."
         connected_nodes += 1
         percent = connected_nodes / total_nodes * 100
         replace_print('Investigating {0:18} Number {1} of {2} nodes ({3:3.2f} %)'.format(current_node.prettify, int(connected_nodes), total_nodes, percent))
 
-        print('\nEnd node has been found: {}'.format(end_node[0].prettify))
+        print '\nEnd node has been found: {}'.format(end_node[0].prettify)
         print '\n'
         print 'The path length from start to end node is {} pixels long'.format(end_node[1])
 
@@ -124,6 +135,12 @@ class mazeSolve(object):
         filename = self.maze.maze.filename.replace('cropped', 'solution')
         maze_copy.save(filename)
 
+    def new_gif_image(self, coords, prev_filename, gif_filename, colour=(136, 255, 136)):
+        maze_copy = Image.open(prev_filename)
+        maze_copy.putpixel(coords, colour)
+        maze_copy.save(gif_filename)
+        return maze_copy
+
     def add_value(self, node, value):
         """Finds `node` in priority_que and assigns `value` to it's second value. If the node hasn't been discovered yet, assign it's distance `value`. Else add value to it's distance"""
         found = False
@@ -142,19 +159,21 @@ class mazeSolve(object):
         """Shortcut method"""
         self.priority_que.heapify()
 
+
 def parser():
-    parser = argparse.ArgumentParser(description="Maze solving program, employing dijkstra's path finding algorithm.")
+    parser = argparse.ArgumentParser(description="Maze solving program, employing Dijkstra's path finding algorithm.")
     parser.add_argument("-f", "--filename", help='The filename of the maze. If left blank, an example is provided.')
-    parser.add_argument("-c", "--to_crop", help='The directory of the maze. If left black, the maze is assumed to be in /mazes', default=True)
+    parser.add_argument("-c", "--crop", help='The directory of the maze. If left black, the maze is assumed to be in /mazes', default=True)
 
     return parser.parse_args()
+
 
 if __name__ == '__main__':
 
     args = parser()
 
     filename = args.filename if args.filename else 'smallmaze.png'
-    to_crop = args.to_crop
+    crop = args.crop
 
     os.chdir('..')
     os.chdir(os.getcwd() + '/mazes')
@@ -165,7 +184,7 @@ if __name__ == '__main__':
 
     t1 = time.time()
 
-    dijkstra = mazeSolve(filename, to_crop=to_crop)
+    dijkstra = mazeSolve(filename, crop=crop)
     dijkstra.solve()
 
     t2 = time.time()

@@ -180,14 +180,14 @@ class Maze(object):
                     left_and_right = directions['left'] and directions['right']
                     left_or_right = directions['left'] or directions['right']
 
-                    # Rules for a node (a node is where you can / must change direction while following a path)
-                    if up_and_down and not left_or_right:
-                        isNode = False
-
-                    elif left_and_right and not up_or_down:
-                        isNode = False
-
-                    # Color maze, assign nodes
+                    # # Rules for a node (a node is where you can / must change direction while following a path)
+                    # if up_and_down and not left_or_right:
+                    #     isNode = False
+                    #
+                    # elif left_and_right and not up_or_down:
+                    #     isNode = False
+                    #
+                    # # Color maze, assign nodes
                     if isNode:
 
                         node_dict['node_%s_%s' % (x,y)] = self.Node(x, y, surroundings=self.get_surroundings(x,y))
