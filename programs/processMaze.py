@@ -1,7 +1,6 @@
-import os
-
 from PIL import Image
 from helpers import cropBorder, replace_print
+
 
 class Maze(object):
 
@@ -52,13 +51,13 @@ class Maze(object):
     start_node = None
     end_node = None
 
-    def __init__(self, filename, to_crop=False):
+    def __init__(self, filename, crop=False):
 
         print '---------------'
         print 'Processing Maze'
         print '---------------\n'
 
-        self.maze = cropBorder(Image.open(filename)) if to_crop else Image.open(filename)
+        self.maze = cropBorder(Image.open(filename)) if crop else Image.open(filename)
         self.height, self.width = self.maze.size
         self.node_dict = self.find_nodes()
         self.make_graph()
@@ -98,13 +97,10 @@ class Maze(object):
     def move_horizontally(self, y):
         """Moves horizontally along y until it finds a white square, return the x,y positions"""
         x_y_pairs = []
-
         for x in xrange(self.width):
-
             pix = self.maze.getpixel((x,y))
 
             if self.check_white(pix):
-
                 x_y_pairs.append((x, y))
 
         return x_y_pairs
@@ -113,13 +109,10 @@ class Maze(object):
         """Moves vertically along x until it finds a white square, return the x,y positions"""
 
         x_y_pairs = []
-
         for y in xrange(self.height - 1):
-
             pix = self.maze.getpixel((x,y))
 
             if self.check_white(pix):
-
                 x_y_pairs.append((x, y))
 
         return x_y_pairs
@@ -141,9 +134,7 @@ class Maze(object):
         for x_y in x_y_pairs:
 
             x, y = x_y[0], x_y[1]
-
             node_name = 'node_%s_%s' % (x,y)
-
             node_dict[node_name] = self.Node(x, y, surroundings=self.get_surroundings(x, y), start=is_start, end=is_end)
 
             if is_start:
@@ -299,10 +290,12 @@ class Maze(object):
         self.maze.putpixel((x, y), color)
         self.maze.save(filename)
 
-    def check_white(self, rgb_tuple):
+    @staticmethod
+    def check_white(rgb_tuple):
         """Checks if rgb_tuple is white"""
         return True if rgb_tuple == (255,255,255) or rgb_tuple == (255,255,255,255) else False
 
-    def check_black(self, rgb_tuple):
+    @staticmethod
+    def check_black(rgb_tuple):
         """Checks if rgb_tuple is black"""
         return True if rgb_tuple == (0,0,0) or rgb_tuple == (0,0,0,255) else False

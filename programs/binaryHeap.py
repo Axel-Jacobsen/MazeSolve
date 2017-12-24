@@ -81,7 +81,8 @@ class BinaryHeap(object):
 
         self.heap[a], self.heap[b] = self.heap[b], self.heap[a]
 
-    def parent(self, n):
+    @staticmethod
+    def parent(n):
         """Returns parent of node at n; None if there isn't a parent"""
 
         return None if n == 0 else (n - 1) // 2
