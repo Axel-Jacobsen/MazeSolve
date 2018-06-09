@@ -2,7 +2,10 @@
 
 This is my attempt at a maze solving program, heavily inspired by [this video](https://www.youtube.com/watch?v=rop0W4QDOUI&t=24s). I will be working on and improving this at my leisure. If you have questions or comments, go right ahead!
 
+![Here is a maze!](mazes/solution_large_maze.png)
+
 Mazes are fetched from [here](http://hereandabove.com/maze/mazeorig.form.html), but any maze that follows these parameters should work:
+
   1. The maze should be a PNG that is only black and white (RGB 0,0,0 or 255,255,255 respectively)
   2. The walls of the maze are black, the path is white
   3. Both the walls and paths of the maze are 1 pixel wide
