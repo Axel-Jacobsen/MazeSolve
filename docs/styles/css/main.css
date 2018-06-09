@@ -1,0 +1,43 @@
+@import url("https://fonts.googleapis.com/css?family=Fanwood+Text|Julius+Sans+One|Marcellus+SC|Raleway|Playfair+Display|Playfair+Display+SC|Poppins|Quattrocento|Vollkorn+SC");
+body {
+  font-family: 'Poppins', serif;
+  font-size: 24px;
+  line-height: 1.5;
+  color: #333;
+  background-color: #eeeeee; }
+
+.content {
+  width: 100%;
+  display: flex;
+  display: -webkit-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-top: 2rem; }
+
+.description {
+  max-width: 70%;
+  color: #333;
+  border-bottom: 0;
+  margin-bottom: 2rem; }
+
+.rowTings {
+  display: flex;
+  flex-direction: row;
+  align-items: center; }
+
+.wide {
+  width: 70%;
+  justify-content: space-evenly; }
+
+p a {
+  text-decoration: underline; }
+
+img {
+  width: 25%; }
+
+a {
+  color: inherit;
+  text-decoration: none; }
+
+/*# sourceMappingURL=main.css.map */
